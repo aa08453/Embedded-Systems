@@ -1,8 +1,0 @@
-#ifndef IR_H
-#define IR_H
-
-void init_IR(void);
-
-int read_IR(void);
-
-#endif

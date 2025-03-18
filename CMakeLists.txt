@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.20.0)
 
 # Find Zephyr base, required for Zephyr projects
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+target_link_libraries(app PUBLIC zephyr)
+
 
 # Define the project name
 project(HW3)

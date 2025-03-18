@@ -2,7 +2,7 @@
 #include "../inc/sensors.h"
 #include "../inc/uart.h"
 
-#define SENSORS_THREAD_STACK_SIZE 1024
+#define SENSORS_THREAD_STACK_SIZE 4096
 #define SENSORS_THREAD_PRIORITY 5
 
 K_THREAD_STACK_DEFINE(sensors_stack, SENSORS_THREAD_STACK_SIZE);

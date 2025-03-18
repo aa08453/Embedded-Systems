@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "us.h": "c",
+        "ir.h": "c",
+        "sensors.h": "c"
+    }
+}
