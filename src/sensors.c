@@ -21,6 +21,9 @@ static float32_t firState_US[NUM_TAPS + BLOCK_SIZE - 1] = {0};
 struct ring_buf us_data_buffer;
 uint8_t us_data_storage[BUFFER_SIZE * sizeof(float32_t)];  // Use uint8_t as required by Zephyr
 
+// Define message queue for sensor data
+K_MSGQ_DEFINE(sensor_queue, sizeof(sensors_data_t), 10, 4);
+
 // Initialize the sensors
 void init_sensors()
 {
@@ -98,9 +101,15 @@ void sensors_thread(void *p1, void *p2, void *p3)
             if (len > 0) {
                 // If there are enough samples, process them
                 float32_t filtered_us_data = process_sensor_data(US_array, len);
+                sensor_data->US_data = (int)filtered_us_data; // Store filtered data
                 printk("IR_value: %d Filtered US value: %f\n", sensor_data->IR_data, (double)filtered_us_data);
             }
 
+            // Send processed sensor data to the algorithm thread via message queue
+            if (k_msgq_put(&sensor_queue, sensor_data, K_NO_WAIT) != 0) {
+                printk("Sensor queue full, dropping data\n");
+            }
+            
             k_free(sensor_data);  // Free the allocated memory
         }
 

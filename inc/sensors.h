@@ -12,6 +12,7 @@ typedef struct
 } sensors_data_t;
 
 extern struct k_thread sensors;
+extern struct k_msgq sensor_queue;
 
 void init_sensors();
 

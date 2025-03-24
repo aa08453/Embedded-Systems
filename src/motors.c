@@ -1,0 +1,147 @@
+#include "../inc/motors.h"
+#include <zephyr/sys/printk.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/pwm.h>
+
+// Motor control thread
+struct k_thread motors;
+
+// Define message queue (extern from algo.c)
+extern struct k_msgq motor_queue;
+
+// Motor GPIO and PWM definitions
+#define IN1 DT_ALIAS(in1)
+#define IN2 DT_ALIAS(in2)
+#define IN3 DT_ALIAS(in3)
+#define IN4 DT_ALIAS(in4)
+
+static const struct pwm_dt_spec enA = PWM_DT_SPEC_GET(DT_ALIAS(ena));
+static const struct pwm_dt_spec enB = PWM_DT_SPEC_GET(DT_ALIAS(enb));
+
+static const struct gpio_dt_spec in1 = GPIO_DT_SPEC_GET(IN1, gpios);
+static const struct gpio_dt_spec in2 = GPIO_DT_SPEC_GET(IN2, gpios);
+static const struct gpio_dt_spec in3 = GPIO_DT_SPEC_GET(IN3, gpios);
+static const struct gpio_dt_spec in4 = GPIO_DT_SPEC_GET(IN4, gpios);
+
+#define MIN_PERIOD PWM_SEC(1U) / 128U
+#define MAX_PERIOD PWM_SEC(1U)
+
+uint32_t period = MAX_PERIOD;
+int ret1, ret2;
+
+// Motor initialization function
+void init_motors(void)
+{
+    int ret;
+
+    ret = gpio_pin_configure_dt(&in1, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        printk("Error %d: failed to configure in1 pin\n", ret);
+        return; 
+    }
+    ret = gpio_pin_configure_dt(&in2, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        printk("Error %d: failed to configure in2 pin\n", ret);
+        return;
+    }
+    ret = gpio_pin_configure_dt(&in3, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        printk("Error %d: failed to configure in3 pin\n", ret);
+        return;
+    }
+    ret = gpio_pin_configure_dt(&in4, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        printk("Error %d: failed to configure in4 pin\n", ret);
+        return;
+    }
+
+    if (!pwm_is_ready_dt(&enA) || !pwm_is_ready_dt(&enB)) {
+        printk("Error: PWM devices are not ready\n");
+        return;
+    }
+
+    printk("Motors initialized successfully\n");
+}
+
+// Function to set motor direction based on received command
+void set_motor_direction(char command)
+{
+    switch (command) {
+        case 'F': // Move Forward
+            gpio_pin_set_dt(&in1, 1);
+            gpio_pin_set_dt(&in2, 0);
+            gpio_pin_set_dt(&in3, 0);
+            gpio_pin_set_dt(&in4, 1);
+            printk("Motors moving forward\n");
+            break;
+
+        case 'B': // Move Backward
+            gpio_pin_set_dt(&in1, 0);
+            gpio_pin_set_dt(&in2, 1);
+            gpio_pin_set_dt(&in3, 1);
+            gpio_pin_set_dt(&in4, 0);
+            printk("Motors moving backward\n");
+            break;
+
+        case 'S': // Stop Motors
+            gpio_pin_set_dt(&in1, 0);
+            gpio_pin_set_dt(&in2, 0);
+            gpio_pin_set_dt(&in3, 0);
+            gpio_pin_set_dt(&in4, 0);
+            printk("Motors stopped\n");
+            break;
+
+        default:
+            printk("Invalid motor command received\n");
+            break;
+    }
+}
+
+// Function to adjust speed
+void set_speeds(uint32_t new_speed)
+{
+    period = new_speed;
+
+    ret1 = pwm_set_dt(&enA, period, period / 2U);
+    if (ret1) {
+        printk("Error %d: failed to set pulse width for enA\n", ret1);
+        return;
+    }
+
+    ret2 = pwm_set_dt(&enB, period, period / 2U);
+    if (ret2) {
+        printk("Error %d: failed to set pulse width for enB\n", ret2);
+        return;
+    }
+
+    printk("Motor speeds updated, period: %d\n", period);
+}
+
+// Function to receive motor commands from message queue
+void receive_command(char *command)
+{
+    if (k_msgq_get(&motor_queue, command, K_FOREVER) == 0) {
+        printk("Received motor command: %c\n", *command);
+    }
+}
+
+// Motor thread function
+void motors_thread(void)
+{
+    init_motors();
+    char command;
+
+    while (1) {
+        receive_command(&command);
+        set_motor_direction(command);
+
+        // if (command == 'S') {
+        //     set_speeds(MAX_PERIOD);  // Set to lowest speed when stopping
+        // }
+        
+        k_sleep(K_MSEC(100)); // Small delay for smooth operation
+    }
+}
