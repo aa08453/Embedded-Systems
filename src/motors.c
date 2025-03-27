@@ -26,11 +26,12 @@ static const struct gpio_dt_spec in2 = GPIO_DT_SPEC_GET(IN2, gpios);
 static const struct gpio_dt_spec in3 = GPIO_DT_SPEC_GET(IN3, gpios);
 static const struct gpio_dt_spec in4 = GPIO_DT_SPEC_GET(IN4, gpios);
 
-#define MIN_PERIOD PWM_SEC(1U) / 128U
 #define MAX_PERIOD PWM_SEC(1U)
 
 uint32_t period = MAX_PERIOD;
+
 int ret1, ret2;
+
 
 // Motor initialization function
 void init_motors(void)
@@ -67,9 +68,9 @@ void init_motors(void)
 }
 
 // Function to set motor direction based on received command
-void set_motor_direction(char command)
+void set_motor_direction(vector_t* vector)
 {
-    switch (command) {
+    switch (vector->command) {
         case 'F': // Move Forward
             gpio_pin_set_dt(&in1, 1);
             gpio_pin_set_dt(&in2, 0);
@@ -101,30 +102,33 @@ void set_motor_direction(char command)
 }
 
 // Function to adjust speed
-void set_speeds(uint32_t new_speed)
+void set_speeds(double duty_cycle)
 {
-    period = new_speed;
+    int new_speed = duty_cycle * period;
+    ret1 = pwm_set_dt(&enA, period, new_speed);
+    ret2 = pwm_set_dt(&enB, period, new_speed);
 
-    ret1 = pwm_set_dt(&enA, period, period / 2U);
-    if (ret1) {
+    if (ret1) 
+    {
         printk("Error %d: failed to set pulse width for enA\n", ret1);
         return;
     }
 
-    ret2 = pwm_set_dt(&enB, period, period / 2U);
-    if (ret2) {
+    if (ret2) 
+    {
         printk("Error %d: failed to set pulse width for enB\n", ret2);
         return;
     }
 
-    printk("Motor speeds updated, period: %d\n", period);
+    printk("Motor speeds updated, duty cycle: %f\n", duty_cycle);
 }
 
 // Function to receive motor commands from message queue
-void receive_command(char *command)
+void receive_command(vector_t* vector)
 {
-    if (k_msgq_get(&motor_queue, command, K_FOREVER) == 0) {
-        printk("Received motor command: %c\n", *command);
+    if (k_msgq_get(&motor_queue, vector, K_FOREVER) == 0) 
+    {
+        printk("Received motor command: %c speed: %f\n", vector->command, vector->speed);
     }
 }
 
@@ -132,16 +136,13 @@ void receive_command(char *command)
 void motors_thread(void)
 {
     init_motors();
-    char command;
+    vector_t vector;
 
     while (1) {
-        receive_command(&command);
-        set_motor_direction(command);
 
-        // if (command == 'S') {
-        //     set_speeds(MAX_PERIOD);  // Set to lowest speed when stopping
-        // }
-        
-        k_sleep(K_MSEC(100)); // Small delay for smooth operation
+        receive_command(&vector);
+        set_speeds(vector.speed/100);
+        set_motor_direction(&vector);
+        // k_sleep(K_MSEC(1));
     }
 }

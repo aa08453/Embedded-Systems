@@ -1,15 +1,17 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include "algo.h"
+
 extern struct k_thread motors;
 
 void init_motors();
 
-void compute_speeds();
+void receive_command(vector_t* vector);
 
-void set_speeds();
+void set_motor_direction(vector_t* vector);
 
-void recieve_command();
+void set_speeds(double duty_cycle);
 
 void motors_thread();
 

@@ -5,11 +5,18 @@
 
 extern struct k_thread algo;
 
-void compute_command(sensors_data_t *sensor_data, char *command);
+typedef struct
+{
+    char command;
+    double speed;
+} vector_t;
 
-void receive_sensors_data(sensors_data_t *sensor_data);
 
-void send_to_motors(char command);
+void compute_command(sensors_data_t* sensor_data, vector_t* vector);
+
+void receive_sensors_data(sensors_data_t* sensor_data);
+
+void send_to_motors(vector_t* vector);
 
 void algo_thread();
 

@@ -42,7 +42,8 @@ sensors_data_t* read_sensors()
     }
 
     data->IR_data = read_IR();  
-    data->US_data = read_US(); 
+    data->US_data = read_US();
+    // data->US_data = 0; 
     return data;
 }
 
