@@ -62,7 +62,7 @@ int read_US(void)
     }
 
     if (timeout == 0) 
-        return -1;  // Timeout occurred
+        return 100;  // Timeout occurred
 
     uint32_t stop_time = k_cycle_get_32();
     uint32_t elapsed_us = k_cyc_to_us_ceil32(stop_time - start_time);

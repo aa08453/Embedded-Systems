@@ -16,6 +16,10 @@ struct k_thread algo;
 #define MIN_SPEED 20      // Min speed percentage
 #define MAX_SPEED 100     // Max speed percentage
 
+
+
+
+
 void compute_command(sensors_data_t *sensor_data, vector_t* vector) 
 {
     if (sensor_data->IR_data == 1)

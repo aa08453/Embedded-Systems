@@ -26,7 +26,7 @@ static const struct gpio_dt_spec in2 = GPIO_DT_SPEC_GET(IN2, gpios);
 static const struct gpio_dt_spec in3 = GPIO_DT_SPEC_GET(IN3, gpios);
 static const struct gpio_dt_spec in4 = GPIO_DT_SPEC_GET(IN4, gpios);
 
-#define MAX_PERIOD PWM_SEC(1U)
+#define MAX_PERIOD PWM_MSEC(100U)
 
 uint32_t period = MAX_PERIOD;
 
@@ -143,6 +143,5 @@ void motors_thread(void)
         receive_command(&vector);
         set_speeds(vector.speed/100);
         set_motor_direction(&vector);
-        // k_sleep(K_MSEC(1));
     }
 }
