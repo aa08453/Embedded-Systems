@@ -1,0 +1,22 @@
+/ {
+    chosen {
+        zephyr,console = &cdc_acm_uart0;
+    };
+
+    hcsr04: hcsr04@0 {
+        compatible = "hc-sr04";
+        label = "HCSR04";
+        trig-gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+        echo-gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+    };
+};
+
+&zephyr_udc0 {
+    cdc_acm_uart0: cdc_acm_uart0 {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+aliases {
+    hcsr04 = &hcsr04;
+};
