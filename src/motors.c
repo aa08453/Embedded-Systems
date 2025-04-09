@@ -40,31 +40,31 @@ void init_motors(void)
 
     ret = gpio_pin_configure_dt(&in1, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
-        printk("Error %d: failed to configure in1 pin\n", ret);
+        LOG_ERR("Error %d: failed to configure in1 pin", ret);            
         return; 
     }
     ret = gpio_pin_configure_dt(&in2, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
-        printk("Error %d: failed to configure in2 pin\n", ret);
+        LOG_ERR("Error %d: failed to configure in2 pin", ret);            
         return;
     }
     ret = gpio_pin_configure_dt(&in3, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
-        printk("Error %d: failed to configure in3 pin\n", ret);
+        LOG_ERR("Error %d: failed to configure in3 pin", ret);            
         return;
     }
     ret = gpio_pin_configure_dt(&in4, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
-        printk("Error %d: failed to configure in4 pin\n", ret);
+        LOG_ERR("Error %d: failed to configure in4 pin", ret);                          
         return;
     }
 
     if (!pwm_is_ready_dt(&enA) || !pwm_is_ready_dt(&enB)) {
-        printk("Error: PWM devices are not ready\n");
+        LOG_ERR("Error %d: failed to configure enable pin", ret);                    
         return;
     }
 
-    printk("Motors initialized successfully\n");
+    LOG_INF("Motors initialized successfully");
 }
 
 // Function to set motor direction based on received command
@@ -76,7 +76,7 @@ void set_motor_direction(vector_t* vector)
             gpio_pin_set_dt(&in2, 0);
             gpio_pin_set_dt(&in3, 0);
             gpio_pin_set_dt(&in4, 1);
-            printk("Motors moving forward\n");
+            LOG_INF("Motors moving forward");
             break;
 
         case 'B': // Move Backward
@@ -84,19 +84,16 @@ void set_motor_direction(vector_t* vector)
             gpio_pin_set_dt(&in2, 1);
             gpio_pin_set_dt(&in3, 1);
             gpio_pin_set_dt(&in4, 0);
-            printk("Motors moving backward\n");
+            LOG_INF("Motors moving backward");
             break;
 
-        case 'S': // Stop Motors
+
+        default:
+            LOG_INF("Motors stopped");
             gpio_pin_set_dt(&in1, 0);
             gpio_pin_set_dt(&in2, 0);
             gpio_pin_set_dt(&in3, 0);
             gpio_pin_set_dt(&in4, 0);
-            printk("Motors stopped\n");
-            break;
-
-        default:
-            printk("Invalid motor command received\n");
             break;
     }
 }

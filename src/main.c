@@ -18,26 +18,21 @@ K_THREAD_STACK_DEFINE(sensors_stack, SENSORS_THREAD_STACK_SIZE);
 K_THREAD_STACK_DEFINE(motors_stack, MOTOR_THREAD_STACK_SIZE);
 K_THREAD_STACK_DEFINE(algo_stack, ALGO_THREAD_STACK_SIZE);
 
-// Thread objects
-struct k_thread motors;
-struct k_thread algo;
-
 // Shared mutex (optional, for any shared resources)
 K_MUTEX_DEFINE(my_mutex);
 
-void init_threads(void *p) {
-    int delay_ms = *((int *)p);
-
+void init_threads(int delay_ms) 
+{
     k_thread_create(&sensors, sensors_stack, SENSORS_THREAD_STACK_SIZE,
                     (k_thread_entry_t)sensors_thread, &delay_ms, NULL, NULL,
                     SENSORS_THREAD_PRIORITY, 0, K_NO_WAIT);
 
     k_thread_create(&motors, motors_stack, MOTOR_THREAD_STACK_SIZE,
-                    (k_thread_entry_t)motors_thread, &delay_ms, NULL, NULL,
+                    (k_thread_entry_t)motors_thread, NULL, NULL, NULL,
                     MOTOR_THREAD_PRIORITY, 0, K_NO_WAIT);
 
     k_thread_create(&algo, algo_stack, ALGO_THREAD_STACK_SIZE,
-                    (k_thread_entry_t)algo_thread, &delay_ms, NULL, NULL,
+                    (k_thread_entry_t)algo_thread, NULL, NULL, NULL,
                     ALGO_THREAD_PRIORITY, 0, K_NO_WAIT);
 }
 

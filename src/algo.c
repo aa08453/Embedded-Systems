@@ -12,13 +12,9 @@ K_MSGQ_DEFINE(motor_queue, sizeof(vector_t), 10, 4);
 struct k_thread algo;
 
 // Thresholds
-#define US_THRESHOLD 30  // Ultrasonic threshold for speed control (cm)
-#define MIN_SPEED 20      // Min speed percentage
-#define MAX_SPEED 100     // Max speed percentage
-
-
-
-
+#define US_THRESHOLD 30
+#define MIN_SPEED 20
+#define MAX_SPEED 100
 
 void compute_command(sensors_data_t *sensor_data, vector_t* vector) 
 {

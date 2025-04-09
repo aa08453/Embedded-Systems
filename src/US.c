@@ -10,28 +10,29 @@ static const struct gpio_dt_spec echo = GPIO_DT_SPEC_GET(ECHO_NODE, gpios);
 #define TRIG_NODE DT_ALIAS(trig)
 static const struct gpio_dt_spec trig = GPIO_DT_SPEC_GET(TRIG_NODE, gpios);
 
-void init_US(void)
+int init_US(void)
 {
 
     if (!gpio_is_ready_dt(&echo) || !gpio_is_ready_dt(&trig)) 
     {
         printk("GPIO device is not ready\n");
-        return;
+        return -1;
     }
 
     int echo_pin = gpio_pin_configure_dt(&echo, GPIO_INPUT);
     if (echo_pin < 0) 
     {
         printk("Error configuring ECHO GPIO pin: %d\n", echo_pin);
-        return;
+        return -1;
     }
 
     int trig_pin = gpio_pin_configure_dt(&trig, GPIO_OUTPUT);
     if (trig_pin < 0) 
     {
         printk("Error configuring TRIG GPIO pin: %d\n", trig_pin);
-        return;
+        return -1;
     }
+    return 0;
 }
 
 int read_US(void)
