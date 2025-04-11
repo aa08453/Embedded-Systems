@@ -5,7 +5,9 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/logging/log.h>
 
+LOG_MODULE_REGISTER(module_name, CONFIG_LOG_DEFAULT_LEVEL);
 // Motor control thread
 struct k_thread motors;
 

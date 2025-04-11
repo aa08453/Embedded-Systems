@@ -21,7 +21,7 @@ K_THREAD_STACK_DEFINE(algo_stack, ALGO_THREAD_STACK_SIZE);
 // Shared mutex (optional, for any shared resources)
 K_MUTEX_DEFINE(my_mutex);
 
-void init_threads(int delay_ms) 
+void init_threads(int* delay_ms) 
 {
     k_thread_create(&sensors, sensors_stack, SENSORS_THREAD_STACK_SIZE,
                     (k_thread_entry_t)sensors_thread, &delay_ms, NULL, NULL,
