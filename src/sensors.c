@@ -11,7 +11,6 @@
 #define BUFFER_SIZE 10
 
 struct k_thread sensors;
-
 // FIR filter coefficients
 float32_t firCoeffs[NUM_TAPS] = {0.1, 0.1, 0.1, 0.1, 0.1,
                                  0.1, 0.1, 0.1, 0.1, 0.1};
@@ -44,7 +43,8 @@ int init_sensors() {
 }
 
 // Read sensor data
-sensors_data_t* read_sensors() {
+sensors_data_t* read_sensors() 
+{
     sensors_data_t* data = k_malloc(sizeof(sensors_data_t));
     if (data == NULL) {
         printk("Memory allocation failed\n");
@@ -57,9 +57,11 @@ sensors_data_t* read_sensors() {
 }
 
 // Process sensor data using FIR filter
-float32_t process_sensor_data(float32_t *US_array, int len) {
+float32_t process_sensor_data(float32_t *US_array, int len) 
+{
     float32_t *US_filtered = k_malloc(len * sizeof(float32_t)); // Dynamically allocate memory
-    if (US_filtered == NULL) {
+    if (US_filtered == NULL) 
+    {
         printk("Memory allocation failed for US_filtered\n");
         return 0.0;
     }
@@ -76,9 +78,11 @@ void init_sensor_buffer() {
 }
 
 // Store US data in ring buffer
-void store_us_data_in_buffer(float32_t us_data) {
+void store_us_data_in_buffer(float32_t us_data) 
+{
     int ret = ring_buf_put(&us_data_buffer, (uint8_t *)&us_data, sizeof(float32_t));
-    if (ret != sizeof(float32_t)) {
+    if (ret != sizeof(float32_t)) 
+    {
         printk("Ring buffer is full. Overwriting oldest data.\n");
         ring_buf_reset(&us_data_buffer); // Reset buffer to overwrite old data
         ring_buf_put(&us_data_buffer, (uint8_t *)&us_data, sizeof(float32_t));
@@ -92,28 +96,33 @@ int read_us_data_from_buffer(float32_t *us_data, int max_size) {
 }
 
 // Work handler for processing sensor data
-void sensor_work_handler(struct k_work *work) {
+void sensor_work_handler(struct k_work *work) 
+{
     sensors_data_t* sensor_data = read_sensors();
-    if (sensor_data == NULL) {
+    if (sensor_data == NULL) 
+    {
         printk("Failed to allocate memory for sensor data\n");
         return;
     }
-
+    store_us_data_in_buffer(sensor_data->US_data);
     float32_t US_array[BUFFER_SIZE]; // Local array for US data
     int len = read_us_data_from_buffer(US_array, BUFFER_SIZE);
-
-    if (len > 0) {
+    
+    if (len > 0) 
+    {
         float32_t filtered_us_data = process_sensor_data(US_array, len);
-        sensor_data->US_data = (int)filtered_us_data;
+        sensor_data->US_data = filtered_us_data;
         printk("IR_value: %d Filtered US value: %f\n", sensor_data->IR_data, (double)filtered_us_data);
     }
 
-    if (k_msgq_put(&sensor_queue, sensor_data, K_NO_WAIT) != 0) {
+    if (k_msgq_put(&sensor_queue, sensor_data, K_NO_WAIT) != 0) 
+    {
         printk("Sensor queue full, dropping data\n");
         k_free(sensor_data); // Free memory if message queue is full
-    } else {
+    } 
+    else
         k_free(sensor_data); // Free memory after successful enqueue
-    }
+    
 }
 
 K_WORK_DEFINE(sensor_work, sensor_work_handler);

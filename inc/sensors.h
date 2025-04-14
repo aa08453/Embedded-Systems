@@ -8,7 +8,7 @@
 typedef struct
 {
     int IR_data;
-    int US_data;
+    float32_t US_data;
 } sensors_data_t;
 
 extern struct k_thread sensors;

@@ -18,23 +18,40 @@ struct k_thread algo;
 
 void compute_command(sensors_data_t *sensor_data, vector_t* vector) 
 {
-    if (sensor_data->IR_data == 1)
-        vector->command = 'S';  // Stop motors
+    if (sensor_data->IR_data == 1) 
+    {
+        // Obstacle detected in front, stop the motors
+        vector->command = 'S';  // Stop
+        vector->speed = 0;
+    } 
     else 
     {
-        if (sensor_data->US_data <= US_THRESHOLD)
-            vector->speed = MIN_SPEED + ((sensor_data->US_data * (MAX_SPEED - MIN_SPEED)) / US_THRESHOLD);
-        else
-            vector->speed = MAX_SPEED;
+        // if (sensor_data->US_data < US_THRESHOLD) 
+        //     // Too close to the left wall, turn slightly right
+        //     vector->command = 'R';  // Turn right
+    
+        // else if (sensor_data->US_data > US_THRESHOLD) 
+        //     // Too far from the left wall, turn slightly left
+        //     vector->command = 'L';  // Turn left
+        
+        // else 
+            // Optimal distance from the left wall, move forward
+            vector->command = 'F';  // Move forward
 
-        vector->command = 'F';  // Move forward
+        // Adjust speed based on proximity to the left wall
+        if (sensor_data->US_data <= US_THRESHOLD) 
+            // Closer to the wall, reduce speed proportionally
+            vector->speed = MIN_SPEED + ((sensor_data->US_data * (MAX_SPEED - MIN_SPEED)) / US_THRESHOLD);
+        else 
+            // Farther from the wall, increase speed proportionally
+            vector->speed = MAX_SPEED;
     }
 }
 
 void receive_sensors_data(sensors_data_t *sensor_data)
 {
     if (k_msgq_get(&sensor_queue, sensor_data, K_FOREVER) == 0)
-        printk("Received sensor data: IR=%d, US=%d\n", sensor_data->IR_data, sensor_data->US_data);
+        printk("Received sensor data: IR=%d, US=%f\n", sensor_data->IR_data,(double)sensor_data->US_data);
 }
 
 void send_to_motors(vector_t* vector) 
