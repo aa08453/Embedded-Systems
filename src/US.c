@@ -1,5 +1,5 @@
 #include <zephyr.h>
-#include <drivers/sensor.h>
+#include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 
 // Global variable for the HC-SR04 device
@@ -12,18 +12,18 @@ static const struct device *hcsr04_dev;
  *
  * @return 0 on success, negative error code on failure.
  */
-void init(void) 
+int init_US(void) 
 {
     hcsr04_dev = DEVICE_DT_GET_ANY(hcsr04);
 
     if (!device_is_ready(hcsr04_dev)) 
     {
         printk("HC-SR04 device not ready\n");
-        return; // Return standard error code for "No such device"
+        return -ENODEV; // Return standard error code for "No such device"
     }
 
     printk("HC-SR04 initialized successfully\n");
-    return;
+    return 0;
 }
 
 /**
@@ -31,7 +31,7 @@ void init(void)
  *
  * This function fetches a sample from the HC-SR04 sensor and retrieves the distance.
  *
- * @return 0 on success, negative error code on failure.
+ * @return Distance in centimeters on success, negative error code on failure.
  */
 int read_US(void) 
 {
@@ -50,11 +50,10 @@ int read_US(void)
     if (ret < 0) 
     {
         printk("Failed to get distance channel: %d\n", ret);
-        return 0;
+        return ret;
     }
 
     // Print the measured distance
     printk("Distance: %d cm\n", distance.val1);
     return distance.val1;
 }
-
