@@ -1,15 +1,9 @@
 / {
-    /* Define the HC-SR04 sensor node */
-    hcsr04 {
+    hcsr04: hcsr04@0 {
         compatible = "hcsr04";
         label = "HCSR04";
-        trig-gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
-        echo-gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+        trigger-gpios = <&gpiof 1 GPIO_ACTIVE_HIGH>;
+        echo-gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
         status = "okay";
     };
-};
-
-/* Define aliases for convenience */
-aliases {
-    hcsr04 = &hcsr04;
 };
