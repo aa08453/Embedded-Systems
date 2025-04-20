@@ -4,11 +4,11 @@
 #include <zephyr/sys/printk.h>
 #include "../inc/US.h"
 
-const struct device *hcsr04_dev;
 struct sensor_value distance;
+static const struct device *hcsr04_dev =DEVICE_DT_GET_ANY(hc_sr04);
 
 void init_US(void) {
-    hcsr04_dev = DEVICE_DT_GET(DT_NODELABEL(hcsr04));
+    
     if (!device_is_ready(hcsr04_dev)) {
         printk("HCSR04 sensor device not ready\n");
         return;

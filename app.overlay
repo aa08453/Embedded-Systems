@@ -1,9 +1,0 @@
-/ {
-    hcsr04: hcsr04@0 {
-        compatible = "hcsr04";
-        label = "HCSR04";
-        trigger-gpios = <&gpiof 1 GPIO_ACTIVE_HIGH>;
-        echo-gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
-        status = "okay";
-    };
-};
