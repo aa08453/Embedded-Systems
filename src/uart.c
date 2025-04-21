@@ -17,29 +17,30 @@ int get_user_frequency()
     char input[10] = {0};
     int index = 0, freq = 0;
 
-    printk("\nEnter frequency (10Hz - 50Hz): ");
+    // printk("\nEnter frequency (10Hz - 50Hz): ");
 
-    while (index < (sizeof(input) - 1))
-    {
-        uint8_t c;
-        while (uart_poll_in(uart_dev, &c) != 0) 
-            k_sleep(K_MSEC(10));  // Wait for input
+    // while (index < (sizeof(input) - 1))
+    // {
+    //     uint8_t c;
+    //     while (uart_poll_in(uart_dev, &c) != 0) 
+    //         k_sleep(K_MSEC(10));  // Wait for input
 
-        if (c == '\n' || c == '\r')
-            break;
+    //     if (c == '\n' || c == '\r')
+    //         break;
 
-        input[index++] = c;
-        printk("%c", c);
-    }
+    //     input[index++] = c;
+    //     printk("%c", c);
+    // }
 
-    input[index] = '\0';
-    freq = atoi(input); 
+    // input[index] = '\0';
+    // freq = atoi(input); 
 
-    if (freq < 10 || freq > 50) 
-    {
-        printk("\nInvalid frequency! Must be between 10Hz and 50Hz.\n");
-        return get_user_frequency(); 
-    }
-
+    // if (freq < 10 || freq > 50) 
+    // {
+    //     printk("\nInvalid frequency! Must be between 10Hz and 50Hz.\n");
+    //     return get_user_frequency(); 
+    // }
+    freq = 50;
+    
     return freq;
 }

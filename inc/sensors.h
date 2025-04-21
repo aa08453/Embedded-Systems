@@ -8,13 +8,13 @@
 typedef struct
 {
     int IR_data;
-    int US_data;
+    float32_t US_data;
 } sensors_data_t;
 
 extern struct k_thread sensors;
 extern struct k_msgq sensor_queue;
 
-void init_sensors();
+int init_sensors();
 
 sensors_data_t* read_sensors();
 
