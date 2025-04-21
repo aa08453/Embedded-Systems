@@ -90,6 +90,7 @@ void set_motor_direction(vector_t* vector)
             break;
 
 
+
         default:
             LOG_INF("Motors stopped");
             gpio_pin_set_dt(&in1, 0);
@@ -101,11 +102,12 @@ void set_motor_direction(vector_t* vector)
 }
 
 // Function to adjust speed
-void set_speeds(double duty_cycle)
+void set_speeds(double duty_cycle_r, double duty_cycle_l)
 {
-    int new_speed = duty_cycle * period;
-    ret1 = pwm_set_dt(&enA, period, new_speed);
-    ret2 = pwm_set_dt(&enB, period, new_speed);
+    int new_speed_r = duty_cycle_r * period;
+    int new_speed_l = duty_cycle_l * period;
+    ret1 = pwm_set_dt(&enA, period, new_speed_l);
+    ret2 = pwm_set_dt(&enB, period, new_speed_r);
 
     if (ret1) 
     {
@@ -119,7 +121,7 @@ void set_speeds(double duty_cycle)
         return;
     }
 
-    printk("Motor speeds updated, duty cycle: %f\n", duty_cycle);
+    printk("Motor speeds updated, duty_cycle_r: %f , duty_cycle_l: %f\n", duty_cycle_r, duty_cycle_l);
 }
 
 // Function to receive motor commands from message queue
@@ -127,7 +129,7 @@ void receive_command(vector_t* vector)
 {
     if (k_msgq_get(&motor_queue, vector, K_FOREVER) == 0) 
     {
-        printk("Received motor command: %c speed: %f\n", vector->command, vector->speed);
+        printk("Received motor command: %c right speed: %f left speed: %f\n", vector->command, vector->speed_r, vector->speed_l);
     }
 }
 
@@ -140,7 +142,7 @@ void motors_thread(void)
     while (1) {
 
         receive_command(&vector);
-        set_speeds(vector.speed/100);
+        set_speeds(vector.speed_r/100, vector.speed_l/100);
         set_motor_direction(&vector);
     }
 }

@@ -8,7 +8,8 @@ extern struct k_thread algo;
 typedef struct
 {
     char command;
-    double speed;
+    double speed_l;
+    double speed_r;
 } vector_t;
 
 
