@@ -1,19 +1,21 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/ring_buffer.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
 #include <stdio.h>
 #include "../inc/sensors.h"
 #include "../inc/IR.h"
 #include "../inc/US.h"
 
-#define NUM_TAPS   10  
+LOG_MODULE_REGISTER(sensors, CONFIG_LOG_DEFAULT_LEVEL);
+
+#define NUM_TAPS   4  
 #define BLOCK_SIZE 10  
 #define BUFFER_SIZE 10
 
 struct k_thread sensors;
 // FIR filter coefficients
-float32_t firCoeffs[NUM_TAPS] = {0.1, 0.1, 0.1, 0.1, 0.1,
-                                 0.1, 0.1, 0.1, 0.1, 0.1};
+float32_t firCoeffs[NUM_TAPS] = {0.1, 0.1, 0.1, 0.1};
 
 // FIR filter instance and state
 arm_fir_instance_f32 fir_US;
@@ -36,9 +38,8 @@ K_THREAD_STACK_DEFINE(work_q_stack, 2048);
 
 // Initialize sensors
 int init_sensors() {
-    if (init_IR() != 0 || init_US() != 0) {
+    if (init_IR() != 0 || init_US() != 0)
         return -1; // Initialization failed
-    }
     return 0; // Success
 }
 
@@ -46,8 +47,9 @@ int init_sensors() {
 sensors_data_t* read_sensors() 
 {
     sensors_data_t* data = k_malloc(sizeof(sensors_data_t));
-    if (data == NULL) {
-        printk("Memory allocation failed\n");
+    if (data == NULL) 
+    {
+        LOG_ERR("Memory allocation failed");
         return NULL;
     }
 
@@ -62,7 +64,7 @@ float32_t process_sensor_data(float32_t *US_array, int len)
     float32_t *US_filtered = k_malloc(len * sizeof(float32_t)); // Dynamically allocate memory
     if (US_filtered == NULL) 
     {
-        printk("Memory allocation failed for US_filtered\n");
+        LOG_ERR("Memory allocation failed for US_filtered");
         return 0.0;
     }
 
@@ -73,7 +75,8 @@ float32_t process_sensor_data(float32_t *US_array, int len)
 }
 
 // Initialize ring buffer
-void init_sensor_buffer() {
+void init_sensor_buffer() 
+{
     ring_buf_init(&us_data_buffer, BUFFER_SIZE * sizeof(float32_t), us_data_storage);
 }
 
@@ -83,14 +86,15 @@ void store_us_data_in_buffer(float32_t us_data)
     int ret = ring_buf_put(&us_data_buffer, (uint8_t *)&us_data, sizeof(float32_t));
     if (ret != sizeof(float32_t)) 
     {
-        printk("Ring buffer is full. Overwriting oldest data.\n");
+        LOG_INF("Ring buffer is full. Overwriting oldest data.");
         ring_buf_reset(&us_data_buffer); // Reset buffer to overwrite old data
         ring_buf_put(&us_data_buffer, (uint8_t *)&us_data, sizeof(float32_t));
     }
 }
 
 // Read US data from ring buffer
-int read_us_data_from_buffer(float32_t *us_data, int max_size) {
+int read_us_data_from_buffer(float32_t *us_data, int max_size) 
+{
     int len = ring_buf_get(&us_data_buffer, (uint8_t *)us_data, sizeof(float32_t) * max_size);
     return len / sizeof(float32_t);
 }
@@ -101,7 +105,7 @@ void sensor_work_handler(struct k_work *work)
     sensors_data_t* sensor_data = read_sensors();
     if (sensor_data == NULL) 
     {
-        printk("Failed to allocate memory for sensor data\n");
+        LOG_ERR("Failed to allocate memory for sensor data");
         return;
     }
     store_us_data_in_buffer(sensor_data->US_data);
@@ -112,12 +116,12 @@ void sensor_work_handler(struct k_work *work)
     {
         float32_t filtered_us_data = process_sensor_data(US_array, len);
         sensor_data->US_data = filtered_us_data;
-        printk("IR_value: %d Filtered US value: %f\n", sensor_data->IR_data, (double)filtered_us_data);
+        LOG_INF("IR_value: %d Filtered US value: %f", sensor_data->IR_data, (double)filtered_us_data);
     }
 
     if (k_msgq_put(&sensor_queue, sensor_data, K_NO_WAIT) != 0) 
     {
-        printk("Sensor queue full, dropping data\n");
+        LOG_INF("Sensor queue full, dropping data\n");
         k_free(sensor_data); // Free memory if message queue is full
     } 
     else
@@ -128,7 +132,8 @@ void sensor_work_handler(struct k_work *work)
 K_WORK_DEFINE(sensor_work, sensor_work_handler);
 
 // Timer handler to submit work
-void sensor_timer_handler(struct k_timer *dummy) {
+void sensor_timer_handler(struct k_timer *dummy) 
+{
     k_work_submit_to_queue(&my_work_q, &sensor_work); // Submit work to queue
 }
 
@@ -136,7 +141,8 @@ void sensor_timer_handler(struct k_timer *dummy) {
 K_TIMER_DEFINE(sensor_timer, sensor_timer_handler, NULL);
 
 // Sensors thread
-void sensors_thread(void *p1, void *p2, void *p3) {
+void sensors_thread(void *p1, void *p2, void *p3) 
+{
     // Start work queue
     k_work_queue_start(
         &my_work_q,
@@ -147,8 +153,9 @@ void sensors_thread(void *p1, void *p2, void *p3) {
     );
 
     // Initialize sensors and buffer
-    if (init_sensors() != 0) {
-        printk("Sensor initialization failed\n");
+    if (init_sensors() != 0) 
+    {
+        LOG_ERR("Sensor initialization failed");
         return;
     }
     init_sensor_buffer();

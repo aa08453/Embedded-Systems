@@ -6,7 +6,7 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(module_name, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(motors, CONFIG_LOG_DEFAULT_LEVEL);
 // Motor control thread
 struct k_thread motors;
 
@@ -89,6 +89,7 @@ void set_motor_direction(vector_t* vector)
             break;
 
 
+
         default:
             LOG_INF("Motors stopped");
             gpio_pin_set_dt(&in1, 0);
@@ -100,34 +101,33 @@ void set_motor_direction(vector_t* vector)
 }
 
 // Function to adjust speed
-void set_speeds(double duty_cycle)
+void set_speeds(double duty_cycle_r, double duty_cycle_l)
 {
-    int new_speed = duty_cycle * period;
-    ret1 = pwm_set_dt(&enA, period, new_speed);
-    ret2 = pwm_set_dt(&enB, period, new_speed);
+    int new_speed_r = duty_cycle_r * period;
+    int new_speed_l = duty_cycle_l * period;
+    ret1 = pwm_set_dt(&enA, period, new_speed_l);
+    ret2 = pwm_set_dt(&enB, period, new_speed_r);
 
     if (ret1) 
     {
-        printk("Error %d: failed to set pulse width for enA\n", ret1);
+        LOG_ERR("Error %d: failed to set pulse width for enA", ret1);  
         return;
     }
 
     if (ret2) 
     {
-        printk("Error %d: failed to set pulse width for enB\n", ret2);
+        LOG_ERR("Error %d: failed to set pulse width for enB", ret2);
         return;
     }
 
-    printk("Motor speeds updated, duty cycle: %f\n", duty_cycle);
+    LOG_INF("Motor speeds updated, duty_cycle_r: %f , duty_cycle_l: %f", duty_cycle_r, duty_cycle_l);
 }
 
 // Function to receive motor commands from message queue
 void receive_command(vector_t* vector)
 {
     if (k_msgq_get(&motor_queue, vector, K_FOREVER) == 0) 
-    {
-        printk("Received motor command: %c speed: %f\n", vector->command, vector->speed);
-    }
+        LOG_INF("Received motor command: %c right speed: %f left speed: %f", vector->command, vector->speed_r, vector->speed_l);
 }
 
 // Motor thread function
@@ -139,7 +139,7 @@ void motors_thread(void)
     while (1) {
 
         receive_command(&vector);
-        set_speeds(vector.speed/100);
+        set_speeds(vector.speed_r/100, vector.speed_l/100);
         set_motor_direction(&vector);
     }
 }

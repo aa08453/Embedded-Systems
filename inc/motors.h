@@ -11,7 +11,7 @@ void receive_command(vector_t* vector);
 
 void set_motor_direction(vector_t* vector);
 
-void set_speeds(double duty_cycle);
+void set_speeds(double duty_cycle_r, double duty_cycle_l);
 
 void motors_thread();
 
