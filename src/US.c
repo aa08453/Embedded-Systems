@@ -4,6 +4,8 @@
 #include <limits.h>
 #include "../inc/US.h"
 
+
+
 #define ECHO_NODE DT_ALIAS(echo)
 static const struct gpio_dt_spec echo = GPIO_DT_SPEC_GET(ECHO_NODE, gpios);
 

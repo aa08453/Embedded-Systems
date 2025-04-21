@@ -7,7 +7,7 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(module_name, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(motors, CONFIG_LOG_DEFAULT_LEVEL);
 // Motor control thread
 struct k_thread motors;
 
@@ -111,26 +111,24 @@ void set_speeds(double duty_cycle_r, double duty_cycle_l)
 
     if (ret1) 
     {
-        printk("Error %d: failed to set pulse width for enA\n", ret1);
+        LOG_ERR("Error %d: failed to set pulse width for enA", ret1);  
         return;
     }
 
     if (ret2) 
     {
-        printk("Error %d: failed to set pulse width for enB\n", ret2);
+        LOG_ERR("Error %d: failed to set pulse width for enB", ret2);
         return;
     }
 
-    printk("Motor speeds updated, duty_cycle_r: %f , duty_cycle_l: %f\n", duty_cycle_r, duty_cycle_l);
+    LOG_INF("Motor speeds updated, duty_cycle_r: %f , duty_cycle_l: %f", duty_cycle_r, duty_cycle_l);
 }
 
 // Function to receive motor commands from message queue
 void receive_command(vector_t* vector)
 {
     if (k_msgq_get(&motor_queue, vector, K_FOREVER) == 0) 
-    {
-        printk("Received motor command: %c right speed: %f left speed: %f\n", vector->command, vector->speed_r, vector->speed_l);
-    }
+        LOG_INF("Received motor command: %c right speed: %f left speed: %f", vector->command, vector->speed_r, vector->speed_l);
 }
 
 // Motor thread function
