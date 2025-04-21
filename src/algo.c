@@ -23,8 +23,8 @@ struct k_thread algo;
 
 void compute_command(sensors_data_t *sensor_data, vector_t* vector) 
 {
-    int right = (sensor_data->US_data > MAX_THRESHOLD); //away from wall
-    int left =  (sensor_data->US_data < MIN_THRESHOLD); //towards wall
+    // int right = (sensor_data->US_data > MAX_THRESHOLD); //away from wall
+    // int left =  (sensor_data->US_data < MIN_THRESHOLD); //towards wall
 
     if (sensor_data->IR_data == 1)
     {   
