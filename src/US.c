@@ -5,7 +5,7 @@
 #include "../inc/US.h"
 
 struct sensor_value distance;
-static const struct device *hcsr04_dev =DEVICE_DT_GET_ANY(hc_sr04);
+static const struct device *hcsr04_dev =  DEVICE_DT_GET_ANY(my_hc_sr04);
 
 void init_US(void) {
     
