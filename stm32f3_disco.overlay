@@ -1,0 +1,81 @@
+/*
+ * Overlay for stm32f3_disco board
+ * Adds application-specific GPIOs, PWM outputs, and sensor nodes.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	gpio_keys {
+		compatible = "gpio-keys";
+
+		user_button: button {
+			label = "User";
+			gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+
+		ir_gpio: ir {
+			label = "ir_gpio";
+			gpios = <&gpioc 3 GPIO_ACTIVE_LOW>;
+		};
+
+		in1: in1 {
+			label = "in1";
+			gpios = <&gpiob 7 GPIO_ACTIVE_HIGH>;
+		};
+
+		in2: in2 {
+			label = "in2";
+			gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+		};
+
+		in3: in3 {
+			label = "in3";
+			gpios = <&gpiob 3 GPIO_ACTIVE_HIGH>;
+		};
+
+		in4: in4 {
+			label = "in4";
+			gpios = <&gpiod 6 GPIO_ACTIVE_HIGH>;
+		};
+
+		my_hc_sr04: my_hc_sr04 {
+			compatible = "my-hc-sr04";
+			trigger-gpios = <&gpiof 1 GPIO_ACTIVE_HIGH>;
+			echo-gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+
+		pwm_led0: pwm_led_0 {
+			pwms = <&pwm1 1 PWM_USEC(100) PWM_POLARITY_NORMAL>;
+		};
+
+		pwm_led1: pwm_led_1 {
+			pwms = <&pwm2 3 PWM_USEC(100) PWM_POLARITY_NORMAL>;
+		};
+	};
+
+	aliases {
+		ir = &ir_gpio;
+		ena = &pwm_led0;
+		enb = &pwm_led1;
+		in1 = &in1;
+		in2 = &in2;
+		in3 = &in3;
+		in4 = &in4;
+	};
+};
+
+&timers3 {
+	st,prescaler = <10000>;
+	status = "okay";
+
+	pwm2: pwm {
+		status = "okay";
+		pinctrl-0 = <&tim3_ch3_pc8>;
+		pinctrl-names = "default";
+	};
+};
